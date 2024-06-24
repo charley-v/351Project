@@ -1,6 +1,6 @@
 # Project 1 Sender & Receiver - IPC
 
-Section 01, Charley Vieyra, cvieyra95@csu.fullerton.edu
+Charley Vieyra, CPSC351-01, cvieyra95@csu.fullerton.edu
 The programming language I used was C++.
 
 To run program:
