@@ -39,7 +39,7 @@ string recvFileName()
         /* TODO: Receive the file name using msgrcv() */
 	if (msgrcv(msqid, &msg, sizeof(msg)-sizeof(long), FILE_NAME_TRANSFER_TYPE, 0) == -1)
 	{
-		perror("msgrcv");
+		perror("Error receiving file name");
 		exit(1);
 	}
 	/* TODO: return the received file name */
@@ -68,27 +68,27 @@ void init(int& shmid, int& msqid, void*& sharedMemPtr)
 	key_t key;
 	if((key = ftok("keyfile.txt", 'a')) == -1)
 	{
-		perror("ftok");
+		perror("Error generating key");
 		exit(1);
 	}
 
 	/* TODO: Allocate a shared memory segment. The size of the segment must be SHARED_MEMORY_CHUNK_SIZE. */
 	if ((shmid = shmget(key, SHARED_MEMORY_CHUNK_SIZE, S_IRUSR | S_IWUSR | IPC_CREAT)) == -1)
 	{
-		perror("shmget");
+		perror("Error Allocating shared memory");
 		exit(1);
 	}
 	
 	/* TODO: Attach to the shared memory */
 	
 	if((sharedMemPtr = shmat(shmid, NULL, 0)) == (void *) -1) {
-		perror("shmat");
+		perror("Error attaching to shared memory");
 		exit(1);
 	}
 	/* TODO: Create a message queue */
 	
 	if(msqid = msgget(key, 0666 | IPC_CREAT) == -1) {
-		perror("msgget");
+		perror("Error creating a message queue");
 		exit(1);
 	}
 	/* TODO: Store the IDs and the pointer to the shared memory region in the corresponding parameters */
@@ -146,7 +146,7 @@ unsigned long mainLoop(const char* fileName)
 
 		if (msgrcv(msqid, &rcvMsg, sizeof(rcvMsg), SENDER_DATA_TYPE, 0) == -1)
 		{
-			perror("msgrcv");
+			perror("Error Receiving");
 			exit(-1);
 		}
 		msgSize = rcvMsg.size;
@@ -168,7 +168,7 @@ unsigned long mainLoop(const char* fileName)
 			ackMessage sndMsg;
 			sndMsg.mtype = RECV_DONE_TYPE;
 			if(msgsnd(msqid, &sndMsg, sizeof(ackMessage) - sizeof(long), 0) == -1) {
-				perror("msgsnd");
+				perror("Error");
 				exit(1);
 			}
 		}
@@ -197,17 +197,17 @@ void cleanUp(const int& shmid, const int& msqid, void* sharedMemPtr)
 	/* TODO: Detach from shared memory */
 	if (shmdt(sharedMemPtr) == -1)
 	{
-		perror("shmdt");
+		perror("Failed to detach");
 		exit(1);
 	}
 	/* TODO: Deallocate the shared memory segment */
 	if (shmctl(shmid, IPC_RMID, 0) == -1) {
-		perror("shmctl");
+		perror("Failed to Deallocate Shared Memory");
 		exit(1);
 	}
 	/* TODO: Deallocate the message queue */
 	if (msgctl(msqid, IPC_RMID, 0) == -1) {
-		perror("msgctl");
+		perror("Failed to Deallocate Messae Queue");
 		exit(1);
 	}
 }
@@ -232,7 +232,7 @@ int main(int argc, char** argv)
 	 * the cleaning functionality in ctrlCSignal().
  	 */
 	if (signal(SIGINT, ctrlCSignal) == SIG_ERR) {
-		perror("signal");
+		perror("Error");
 		exit(1);
 	}
 				
