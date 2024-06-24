@@ -12,3 +12,4 @@ To run program:
 6. On the other terminal window type "./recv"
 7. The file was succesfully sent.
 
+![351screenshot](https://github.com/charley-v/351Project/assets/78202354/bd9ee263-2ddd-4625-959f-3425dc576d5f)
