@@ -35,7 +35,7 @@ void init(int& shmid, int& msqid, void*& sharedMemPtr)
 	*/
 	key_t key;
 	if((key = ftok("keyfile.txt", 'a')) == -1){
-		perror("ftok");
+		perror("Error generating key");
 		exit(1);
 	}
 	/* TODO: Get the id of the shared memory segment. The size of the segment must be SHARED_MEMORY_CHUNK_SIZE */
@@ -46,19 +46,19 @@ void init(int& shmid, int& msqid, void*& sharedMemPtr)
 	//get id
 	if ((shmid = shmget(key, SHARED_MEMORY_CHUNK_SIZE, IPC_CREAT| S_IRUSR | S_IWUSR)) == -1)
 	{
-		perror("shmget");
-		exit(1);
+		perror("Failed to get ID");
+		exit(-1);
 	}
 	//attach to the shared memory
 	if((sharedMemPtr = shmat(shmid, NULL, 0)) == (void *) -1) {
-		perror("shmat");
-		exit(1);
+		perror("Error attaching to shared memory");
+		exit(-1);
 	}
 	//attach to the message queue
 	if((msqid = msgget(key, 0666 | IPC_CREAT)) == -1)
 	{
-		perror("msgget");
-		exit(1);
+		perror("Error attaching to message queue");
+		exit(-1);
 	}
 }
 
@@ -72,8 +72,8 @@ void cleanUp(const int& shmid, const int& msqid, void* sharedMemPtr)
 {
 	/* TODO: Detach from shared memory */
 	if(shmdt(sharedMemPtr) == -1){
-		perror("shmdt");
-		exit(1);
+		perror("Error Dataching from shared memory");
+		exit(-1);
 	}
 
 }
@@ -127,8 +127,8 @@ unsigned long sendFile(const char* fileName)
  		 */
 		sndMsg.mtype = SENDER_DATA_TYPE;
 		if(msgsnd(msqid, &sndMsg, sizeof(message)-sizeof(long), 0) == -1){
-			perror("msgsnd");
-			exit(1);
+			perror("Failed to Notify");
+			exit(-1);
 		}
 		else {
 			printf("File Ready\n");
@@ -137,8 +137,8 @@ unsigned long sendFile(const char* fileName)
  		 * that he finished saving a chunk of memory. 
  		 */
 		if(msgrcv(msqid, &rcvMsg, sizeof(ackMessage)-sizeof(long), RECV_DONE_TYPE, 0) == -1){
-			perror("msgrcv");
-			exit(1);
+			perror("Error");
+			exit(-1);
 		}
 		else{
 			printf("Finished.\n");
@@ -156,8 +156,8 @@ unsigned long sendFile(const char* fileName)
 	/* Close the file */
 	sndMsg.size = 0;
 	if(msgsnd(msqid, &sndMsg, sizeof(message), 0) == -1){
-		perror("msgsnd");
-		exit(1);
+		perror("Error");
+		exit(-1);
 	}
 	fclose(fp);
 	printf("Process All Done.\n");
@@ -192,7 +192,7 @@ void sendFileName(const char* fileName)
 	strncpy(msg.fileName, fileName, fileNameSize+1);
 	/* TODO: Send the message using msgsnd */
 	if(msgsnd(msqid, &msg, sizeof(fileNameMsg) - sizeof(long), 0) < 0){
-		perror("msgsnd");
+		perror("Failed to send message");
 		exit(-1);
 	}
 }
@@ -212,7 +212,7 @@ int main(int argc, char** argv)
 	init(shmid, msqid, sharedMemPtr);
 	
 	/* Send the name of the file */
-    sendFileName(argv[1]);
+    	sendFileName(argv[1]);
 		
 	/* Send the file */
 	sendFile(argv[1]);
