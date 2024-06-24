@@ -40,7 +40,7 @@ string recvFileName()
 	if (msgrcv(msqid, &msg, sizeof(msg)-sizeof(long), FILE_NAME_TRANSFER_TYPE, 0) == -1)
 	{
 		perror("Error receiving file name");
-		exit(1);
+		exit(-1);
 	}
 	/* TODO: return the received file name */
 	cout << "Received file " << endl;
@@ -69,27 +69,27 @@ void init(int& shmid, int& msqid, void*& sharedMemPtr)
 	if((key = ftok("keyfile.txt", 'a')) == -1)
 	{
 		perror("Error generating key");
-		exit(1);
+		exit(-1);
 	}
 
 	/* TODO: Allocate a shared memory segment. The size of the segment must be SHARED_MEMORY_CHUNK_SIZE. */
 	if ((shmid = shmget(key, SHARED_MEMORY_CHUNK_SIZE, S_IRUSR | S_IWUSR | IPC_CREAT)) == -1)
 	{
 		perror("Error Allocating shared memory");
-		exit(1);
+		exit(-1);
 	}
 	
 	/* TODO: Attach to the shared memory */
 	
 	if((sharedMemPtr = shmat(shmid, NULL, 0)) == (void *) -1) {
 		perror("Error attaching to shared memory");
-		exit(1);
+		exit(-1);
 	}
 	/* TODO: Create a message queue */
 	
 	if(msqid = msgget(key, 0666 | IPC_CREAT) == -1) {
 		perror("Error creating a message queue");
-		exit(1);
+		exit(-1);
 	}
 	/* TODO: Store the IDs and the pointer to the shared memory region in the corresponding parameters */
 	
@@ -121,7 +121,7 @@ unsigned long mainLoop(const char* fileName)
 	if(!fp)
 	{
 		perror("fopen");	
-		exit(1);
+		exit(-1);
 	}
 		
 
@@ -169,7 +169,7 @@ unsigned long mainLoop(const char* fileName)
 			sndMsg.mtype = RECV_DONE_TYPE;
 			if(msgsnd(msqid, &sndMsg, sizeof(ackMessage) - sizeof(long), 0) == -1) {
 				perror("Error");
-				exit(1);
+				exit(-1);
 			}
 		}
 		/* We are done */
@@ -198,17 +198,17 @@ void cleanUp(const int& shmid, const int& msqid, void* sharedMemPtr)
 	if (shmdt(sharedMemPtr) == -1)
 	{
 		perror("Failed to detach");
-		exit(1);
+		exit(-1);
 	}
 	/* TODO: Deallocate the shared memory segment */
 	if (shmctl(shmid, IPC_RMID, 0) == -1) {
 		perror("Failed to Deallocate Shared Memory");
-		exit(1);
+		exit(-1);
 	}
 	/* TODO: Deallocate the message queue */
 	if (msgctl(msqid, IPC_RMID, 0) == -1) {
 		perror("Failed to Deallocate Messae Queue");
-		exit(1);
+		exit(-1);
 	}
 }
 
@@ -233,7 +233,7 @@ int main(int argc, char** argv)
  	 */
 	if (signal(SIGINT, ctrlCSignal) == SIG_ERR) {
 		perror("Error");
-		exit(1);
+		exit(-1);
 	}
 				
 	/* Initialize */
